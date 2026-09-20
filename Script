@@ -50,10 +50,7 @@ end
 
 local function ignorePath(path, args)
     if State.Ignore[path] then return true end
-    local l = string.lower(path or "")
-    for _, k in ipairs({"cframe","character","rootpart","motor","replication","replicate","physics","camera"}) do
-        if string.find(l, k, 1, true) then return true end
-    end
+    -- only auto-ignore real CFrame / movement spam (not by remote path/name)
     if args and cframeHeavy(args) then return true end
     return false
 end
