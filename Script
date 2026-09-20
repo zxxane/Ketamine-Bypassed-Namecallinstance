@@ -1164,7 +1164,8 @@ do -- Set properties
     objects["Instance44"]["LayoutOrder"] = 8;
     objects["Instance44"]["Rotation"] = 0;
     objects["Instance44"]["LineHeight"] = 1;
-    objects["Instance44"]["Name"] = "MemoryScanner";
+    objects["Instance44"]["Name"] = "MemoryScanner"
+    objects["Instance44"]["Visible"] = false;
     objects["Instance44"]["TextXAlignment"] = Enum.TextXAlignment.Center;
     objects["Instance44"]["Selectable"] = true;
     objects["Instance44"]["MaxVisibleGraphemes"] = -1;
@@ -1313,7 +1314,8 @@ do -- Set properties
     objects["Instance49"]["LayoutOrder"] = 7;
     objects["Instance49"]["Rotation"] = 0;
     objects["Instance49"]["LineHeight"] = 1;
-    objects["Instance49"]["Name"] = "ScriptScanner";
+    objects["Instance49"]["Name"] = "ScriptScanner"
+    objects["Instance49"]["Visible"] = false;
     objects["Instance49"]["TextXAlignment"] = Enum.TextXAlignment.Center;
     objects["Instance49"]["Selectable"] = true;
     objects["Instance49"]["MaxVisibleGraphemes"] = -1;
@@ -1760,7 +1762,8 @@ do -- Set properties
     objects["Instance64"]["LayoutOrder"] = 5;
     objects["Instance64"]["Rotation"] = 0;
     objects["Instance64"]["LineHeight"] = 1;
-    objects["Instance64"]["Name"] = "HTTPSpy";
+    objects["Instance64"]["Name"] = "HTTPSpy"
+    objects["Instance64"]["Visible"] = false;
     objects["Instance64"]["TextXAlignment"] = Enum.TextXAlignment.Center;
     objects["Instance64"]["Selectable"] = true;
     objects["Instance64"]["MaxVisibleGraphemes"] = -1;
@@ -1909,7 +1912,8 @@ do -- Set properties
     objects["Instance69"]["LayoutOrder"] = 4;
     objects["Instance69"]["Rotation"] = 0;
     objects["Instance69"]["LineHeight"] = 1;
-    objects["Instance69"]["Name"] = "ESpy";
+    objects["Instance69"]["Name"] = "ESpy"
+    objects["Instance69"]["Visible"] = false;
     objects["Instance69"]["TextXAlignment"] = Enum.TextXAlignment.Center;
     objects["Instance69"]["Selectable"] = true;
     objects["Instance69"]["MaxVisibleGraphemes"] = -1;
@@ -7956,7 +7960,10 @@ return {
 }
     end;
 
-    modules[objects["Instance12"]] = function()
+    modules[objects["Instance12"]] = function() -- ESPY DISABLED
+return function() end
+end
+modules["_disabled_ESpy"] = function()
         local script = objects["Instance12"];
 return function(shared, page)
     local ui = page:FindFirstAncestorOfClass("ScreenGui")
@@ -8178,27 +8185,8 @@ return function(shared, page)
                 end
             end)
             
-            local getnamecall = getfenv().getnamecallmethod
-            hooks.HookMetaMethod("__namecall", function(old, self, ...)
-                if typeof(self) ~= "Instance" then
-                    return old(self, ...)
-                end
-                
-                local method = getnamecall():gsub("\0", "")
-                method = method:sub(1, 1):upper() .. method:sub(2)
-                
-                if getcaller then
-                    caller = getcaller()
-                end
-                
-                if method == "Fire" and self.ClassName == "BindableEvent" then
-                    return fire(self, ...)
-                elseif method == "Invoke" and self.ClassName == "BindableFunction" then
-                    return invoke(self, ...)
-                end
-                
-                return old(self, ...)
-            end)
+            -- namecall removed (AC freeze prevention)
+
         end)
     else
         task.spawn(function()
@@ -8418,7 +8406,10 @@ return function(shared, page)
 end
     end;
 
-    modules[objects["Instance14"]] = function()
+    modules[objects["Instance14"]] = function() -- SCRIPT SCAN DISABLED
+return function() end
+end
+modules["_disabled_ScriptScan"] = function()
         local script = objects["Instance14"];
 return function(shared, page)
     local cons = shared.Connections
@@ -11457,7 +11448,10 @@ return function(textbox,env)
 end
     end;
 
-    modules[objects["Instance13"]] = function()
+    modules[objects["Instance13"]] = function() -- HTTP DISABLED
+return function() end
+end
+modules["_disabled_HTTP"] = function()
         local script = objects["Instance13"];
 return function(shared, page)
     if not getfenv().request then
@@ -11590,32 +11584,8 @@ return function(shared, page)
                 end)
             end
 
-            local getnamecall = getfenv().getnamecallmethod
+            -- namecall removed (AC freeze prevention)
 
-            hooks.HookMetaMethod("__namecall", function(old, self, ...)
-                if typeof(self) ~= "Instance" then
-                    return old(self, ...)
-                end
-
-                local method = getnamecall()
-                method = method:sub(1, 1):upper() .. method:sub(2)
-
-                if self == game and (method == "HttpGet" or method == "HttpGetAsync") then -- I've planned to add support for RequestInternal and requests from HttpService, but nah
-                    local result = shared:AddObject({ })
-                    task.spawn(addLog, select(1, ...), "GET", "game:HttpGet", select(3, ...), nil, result)
-
-                    result[1] = old(self, ...)
-                    return result[1]
-                elseif self == game and (method == "HttpPost" or method == "HttpPostAsync") then
-                    local result = shared:AddObject({ })
-                    task.spawn(addLog, select(1, ...), "POST", "game:HttpPost", select(5, ...), select(2, ...), result)
-
-                    result[1] = old(self, ...)
-                    return result[1]
-                end
-
-                return old(self, ...)
-            end)
         end)
     else
         local originalReq = genv.request
@@ -12311,7 +12281,10 @@ return function(shared)
 end
     end;
 
-    modules[objects["Instance15"]] = function()
+    modules[objects["Instance15"]] = function() -- MEMORY SCAN DISABLED
+return function() end
+end
+modules["_disabled_Memory"] = function()
         local script = objects["Instance15"];
 return function(shared, page)
     local enumerate = --[[getfenv().getreg or]] getfenv().getgc
@@ -12909,3 +12882,30 @@ task.spawn(function()
 end)
     end);
 end;
+
+
+-- Hide non-remote pages (Events / HTTP / Script scan / Memory / Search)
+task.defer(function()
+    local function hideByName(root, names)
+        for _, d in ipairs(root:GetDescendants()) do
+            if d:IsA("TextButton") or d:IsA("Frame") or d:IsA("TextLabel") then
+                local n = string.lower(d.Name or "")
+                local t = string.lower(d:IsA("TextLabel") and d.Text or d:IsA("TextButton") and d.Text or "")
+                for _, key in ipairs(names) do
+                    if string.find(n, key, 1, true) or string.find(t, key, 1, true) then
+                        pcall(function() d.Visible = false end)
+                    end
+                end
+            end
+        end
+    end
+    local keys = {"espy", "event", "http", "scriptscan", "script scan", "memory", "search", "httpspy", "memoryscanner", "scriptscanner"}
+    for _, g in ipairs(game:GetService("CoreGui"):GetDescendants()) do
+        if g.Name == "Ketamine" or (g:IsA("ScreenGui") and string.find(string.lower(g.Name), "ketamine")) then
+            hideByName(g, keys)
+        end
+    end
+    pcall(function()
+        if gethui then hideByName(gethui(), keys) end
+    end)
+end)
